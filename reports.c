@@ -1,101 +1,160 @@
 #include <stdio.h>
+#include "Reports.h"
 
-// Extern declaration of global variables from other modules
-extern int emp_count;
-extern float emp_basic[];
-extern float emp_housing[];
-extern float emp_transport[];
+/* Employee Report */
 
-extern int budget_count;
-extern char b_dept[][50];
-extern float b_allocated[];
-extern float b_spent[];
-
-extern int sup_count;
-extern int ast_count;
-
-void generateEmployeeReport()
+void employeeReport(struct Employee employees[], int count)
 {
     int i;
-    float sum = 0, highest = 0, lowest = 0;
+    float total = 0;
+    float salary;
+    float highest;
+    float lowest;
 
-    printf("\n=== EMPLOYEE REPORT ===\n");
-    printf("Total Employees: %d\n", emp_count);
-
-    if (emp_count > 0)
+    if (count == 0)
     {
-        lowest = emp_basic[0] + emp_housing[0] + emp_transport[0];
-        for (i = 0; i < emp_count; i++)
+        printf("No employees available.\n");
+        return;
+    }
+
+    salary = employees[0].basicSalary
+           + employees[0].housingAllowance
+           + employees[0].transportAllowance;
+
+    highest = salary;
+    lowest = salary;
+
+    for (i = 0; i < count; i++)
+    {
+        salary = employees[i].basicSalary
+               + employees[i].housingAllowance
+               + employees[i].transportAllowance;
+
+        total = total + salary;
+
+        if (salary > highest)
         {
-            float total = emp_basic[i] + emp_housing[i] + emp_transport[i];
-            sum += total;
-            if (total > highest) highest = total;
-            if (total < lowest) lowest = total;
+            highest = salary;
         }
-        printf("Average Salary: N$%.2f\n", sum / emp_count);
-        printf("Highest Salary: N$%.2f\n", highest);
-        printf("Lowest Salary : N$%.2f\n", lowest);
+
+        if (salary < lowest)
+        {
+            lowest = salary;
+        }
+    }
+
+    printf("\nEMPLOYEE REPORT\n");
+    printf("-------------------------\n");
+    printf("Total Employees: %d\n", count);
+    printf("Average Salary: N$%.2f\n", total / count);
+    printf("Highest Salary: N$%.2f\n", highest);
+    printf("Lowest Salary: N$%.2f\n", lowest);
+}
+
+
+/* Budget Report */
+
+void budgetReport(struct Budget budgets[], int count)
+{
+    int i;
+    int overBudget = 0;
+
+    float totalBudget = 0;
+    float totalSpent = 0;
+
+    if (count == 0)
+    {
+        printf("No budgets available.\n");
+        return;
+    }
+
+    for (i = 0; i < count; i++)
+    {
+        totalBudget = totalBudget + budgets[i].allocated;
+        totalSpent = totalSpent + budgets[i].expenditure;
+
+        if (budgets[i].expenditure > budgets[i].allocated)
+        {
+            overBudget++;
+        }
+    }
+
+    printf("\nBUDGET REPORT\n");
+    printf("-------------------------\n");
+    printf("Total Allocated: N$%.2f\n", totalBudget);
+    printf("Total Expenditure: N$%.2f\n", totalSpent);
+    printf("Remaining Budget: N$%.2f\n",
+           totalBudget - totalSpent);
+
+    printf("Departments Over Budget: %d\n", overBudget);
+
+    if (overBudget > 0)
+    {
+        printf("\nDepartments Over Budget:\n");
+
+        for (i = 0; i < count; i++)
+        {
+            if (budgets[i].expenditure > budgets[i].allocated)
+            {
+                printf("%s\n", budgets[i].department);
+            }
+        }
     }
 }
 
-void generateBudgetReport()
+
+/* Supplier Report */
+
+void supplierReport(struct Supplier suppliers[], int count)
 {
     int i;
-    float total_alloc = 0, total_spent = 0;
 
-    printf("\n=== BUDGET REPORT ===\n");
-    for (i = 0; i < budget_count; i++)
+    if (count == 0)
     {
-        total_alloc += b_allocated[i];
-        total_spent += b_spent[i];
+        printf("No suppliers available.\n");
+        return;
     }
 
-    printf("Total Allocated Budget: N$%.2f\n", total_alloc);
-    printf("Total Expenditure     : N$%.2f\n", total_spent);
-    printf("Remaining Budget      : N$%.2f\n", total_alloc - total_spent);
+    printf("\nSUPPLIER REPORT\n");
+    printf("-------------------------\n");
+    printf("Total Suppliers: %d\n", count);
 
-    printf("\nDepartments Exceeding Budget:\n");
-    for (i = 0; i < budget_count; i++)
+    for (i = 0; i < count; i++)
     {
-        if (b_spent[i] > b_allocated[i])
-        {
-            printf("- %s (Exceeded by N$%.2f)\n", b_dept[i], b_spent[i] - b_allocated[i]);
-        }
+        printf("\nSupplier %d\n", i + 1);
+        printf("ID: %d\n", suppliers[i].id);
+        printf("Name: %s\n", suppliers[i].name);
+        printf("Email: %s\n", suppliers[i].email);
+        printf("Telephone: %s\n", suppliers[i].telephone);
+        printf("Town: %s\n", suppliers[i].town);
     }
 }
 
-void reportsMenu()
-{
-    int choice;
-    do
-    {
-        printf("\n=== REPORTS ===\n");
-        printf("1. Employee Salary Report\n");
-        printf("2. Budget Summary Report\n");
-        printf("3. General System Summary\n");
-        printf("4. Back to Main Menu\n");
-        printf("Enter choice: ");
-        scanf("%d", &choice);
 
-        switch (choice)
-        {
-        case 1:
-            generateEmployeeReport();
-            break;
-        case 2:
-            generateBudgetReport();
-            break;
-        case 3:
-            printf("\n=== SYSTEM OVERVIEW ===\n");
-            printf("Registered Employees: %d\n", emp_count);
-            printf("Registered Suppliers: %d\n", sup_count);
-            printf("Registered Assets   : %d\n", ast_count);
-            break;
-        case 4:
-            printf("Returning to main menu...\n");
-            break;
-        default:
-            printf("Invalid choice!\n");
-        }
-    } while (choice != 4);
+/* Asset Report */
+
+void assetReport(struct Asset assets[], int count)
+{
+    int i;
+
+    if (count == 0)
+    {
+        printf("No assets available.\n");
+        return;
+    }
+
+    printf("\nASSET REPORT\n");
+    printf("-------------------------\n");
+    printf("Total Assets: %d\n", count);
+
+    for (i = 0; i < count; i++)
+    {
+        printf("\nAsset %d\n", i + 1);
+        printf("ID: %d\n", assets[i].id);
+        printf("Name: %s\n", assets[i].name);
+        printf("Type: %s\n", assets[i].type);
+        printf("Value: N$%.2f\n", assets[i].value);
+        printf("Department: %s\n", assets[i].department);
+        printf("Condition: %s\n", assets[i].condition);
+    }
 }
